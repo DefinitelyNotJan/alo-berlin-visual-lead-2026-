@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Jan Lönnqvist · Visual Lead · ALO Berlin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            background: #fdfbf8;
+            overflow-x: hidden;
+            font-family: 'Cormorant Garamond', serif;
+            color: #000;
+        }
+        .scroll-length { height: 500vh; }
+        #canvas { position: fixed; inset: 0; z-index: 1; }
+        .content-layer { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+        /* Text panel - fixed left side */
+        .text-panel {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 45vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 8vh 6vw;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .text-section {
+            position: absolute;
+            left: 6vw;
+            right: 6vw;
+            opacity: 0;
+            transform: translateX(-60px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: auto;
+        }
+        .text-section.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Section 1: Intro - positioned lower to leave space for mat */
+        .section-intro { bottom: 12vh; top: auto; transform: translateX(-60px); }
+        .section-intro.visible { transform: translateX(0); }
+        .intro-label {
+            font-size: 12px;
+            letter-spacing: 0.5em;
+            color: #888;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-transform: uppercase;
+        }
+        .intro-label::before {
+            content: '';
+            width: 40px;
+            height: 2px;
+            background: #E22233;
+        }
+        .intro-name {
+            font-size: clamp(48px, 8vw, 100px);
+            font-weight: 300;
+            line-height: 1.0;
+            letter-spacing: -0.03em;
+            margin-bottom: 30px;
+        }
+        .intro-role {
+            font-size: clamp(16px, 2vw, 22px);
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Section 2: Philosophy */
+        .section-philosophy { top: 50%; transform: translateY(-50%) translateX(-60px); }
+        .section-philosophy.visible { transform: translateY(-50%) translateX(0); }
+        .philosophy-text {
+            font-size: clamp(24px, 3.5vw, 42px);
+            font-weight: 300;
+            line-height: 1.5;
+            color: #222;
+        }
+        .philosophy-text em {
+            color: #000;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        /* Section 3: Experience */
+        .section-experience { top: 50%; transform: translateY(-50%) translateX(-60px); }
+        .section-experience.visible { transform: translateY(-50%) translateX(0); }
+        .exp-label {
+            font-size: 11px;
+            letter-spacing: 0.4em;
+            color: #888;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+        .exp-item {
+            display: flex;
+            align-items: baseline;
+            gap: 25px;
+            padding: 18px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+        .exp-year {
+            font-size: 13px;
+            color: #999;
+            min-width: 70px;
+        }
+        .exp-company {
+            font-size: clamp(22px, 3vw, 32px);
+            font-weight: 300;
+        }
+
+        /* Section 4: Skills */
+        .section-skills { top: 50%; transform: translateY(-50%) translateX(-60px); }
+        .section-skills.visible { transform: translateY(-50%) translateX(0); }
+        .skills-label {
+            font-size: 11px;
+            letter-spacing: 0.4em;
+            color: #888;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+        .skill-item {
+            font-size: clamp(20px, 2.5vw, 28px);
+            font-weight: 300;
+            padding: 14px 0;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .skill-item::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #E22233;
+            border-radius: 50%;
+        }
+
+        /* Section 5: CTA */
+        .section-cta { top: 50%; transform: translateY(-50%) translateX(-60px); }
+        .section-cta.visible { transform: translateY(-50%) translateX(0); }
+        .cta-logo { height: 40px; width: auto; margin-bottom: 30px; }
+        .cta-title {
+            font-size: clamp(42px, 6vw, 80px);
+            font-weight: 300;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+        .cta-sub {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 35px;
+        }
+        .cta-btn {
+            display: inline-block;
+            font-size: 12px;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: #fff;
+            background: #000;
+            text-decoration: none;
+            padding: 18px 45px;
+            transition: background 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
+            clip-path: inset(0 100% 0 0);
+        }
+        .section-cta.visible .cta-btn {
+            animation: unravelBtn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+        }
+        @keyframes unravelBtn {
+            0% { clip-path: inset(0 100% 0 0); }
+            100% { clip-path: inset(0 0 0 0); }
+        }
+        .cta-btn:hover {
+            background: #E22233;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .cta-links {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .cta-link {
+            font-size: 13px;
+            color: #888;
+            text-decoration: none;
+        }
+        .cta-link:hover { color: #000; }
+
+        @media (max-width: 900px) {
+            .text-panel { width: 100vw; background: rgba(253,251,248,0.9); }
+        }
+        .nav { position: fixed; top: 28px; right: 5vw; z-index: 100; }
+        .nav-cta { font-size: 9px; letter-spacing: 0.12em; color: #000; text-decoration: none; padding: 8px 16px; border: 1px solid rgba(0,0,0,0.12); transition: all 0.3s; }
+        .nav-cta:hover { background: #000; color: #fff; }
+        .brand-logo { position: fixed; bottom: 5vh; right: 5vw; height: 50px; width: auto; z-index: 100; opacity: 0.85; }
+        .progress { position: fixed; left: 28px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 100; }
+        .progress-line { width: 1px; height: 20vh; background: rgba(0,0,0,0.08); }
+        .progress-fill { width: 100%; background: #E22233; height: 0%; transition: height 0.1s; }
+        .progress-text { writing-mode: vertical-rl; font-size: 7px; letter-spacing: 0.25em; color: #999; transform: rotate(180deg); }
+        @media (max-width: 768px) {
+            .text-panel { padding: 5vh 5vw; }
+            .text-section { left: 5vw; right: 5vw; }
+            .nav { left: 20px; right: 20px; }
+            .progress { left: 12px; }
+        }
+    </style>
+</head>
+<body>
+<div class="scroll-length"></div>
+<canvas id="canvas"></canvas>
+<nav class="nav">
+    <a href="mailto:jan.lonnqvist@windowslive.com" class="nav-cta">Connect</a>
+</nav>
+<img src="https://upload.wikimedia.org/wikipedia/commons/2/29/Alo_Yoga_logo.svg" class="brand-logo" alt="ALO">
+<div class="progress">
+    <div class="progress-line"><div class="progress-fill"></div></div>
+    <span class="progress-text">UNROLL</span>
+</div>
+<div class="text-panel">
+    <div class="text-section section-intro" data-start="0" data-end="0.22">
+        <p class="intro-label">Visual Lead · Berlin</p>
+        <h1 class="intro-name">Jan<br>Lönnqvist</h1>
+        <p class="intro-role">Creating spaces that breathe wellness</p>
+    </div>
+
+    <div class="text-section section-philosophy" data-start="0.18" data-end="0.42">
+        <p class="philosophy-text">I create <em>moments</em> — the pause when a customer enters, the understanding that this space was made for <em>them</em>.</p>
+    </div>
+
+    <div class="text-section section-experience" data-start="0.38" data-end="0.62">
+        <p class="exp-label">Experience</p>
+        <div class="exp-item"><span class="exp-year">2024—</span><span class="exp-company">GLS Group</span></div>
+        <div class="exp-item"><span class="exp-year">2022—24</span><span class="exp-company">Rituals</span></div>
+        <div class="exp-item"><span class="exp-year">2019—20</span><span class="exp-company">IKEA</span></div>
+    </div>
+
+    <div class="text-section section-skills" data-start="0.58" data-end="0.82">
+        <p class="skills-label">What I Bring</p>
+        <div class="skill-item">Premium Retail Design</div>
+        <div class="skill-item">Team Leadership</div>
+        <div class="skill-item">Global Brand Experience</div>
+        <div class="skill-item">Berlin Ready</div>
+    </div>
+
+    <div class="text-section section-cta" data-start="0.78" data-end="1">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/29/Alo_Yoga_logo.svg" class="cta-logo" alt="ALO">
+        <h2 class="cta-title">Let's<br>Begin</h2>
+        <a href="mailto:jan.lonnqvist@windowslive.com" class="cta-btn">Start Conversation</a>
+        <div class="cta-links">
+            <a href="https://definitelynotjan.github.io/Portfolio/" target="_blank" class="cta-link">View Portfolio →</a>
+            <a href="mailto:jan.lonnqvist@windowslive.com" class="cta-link">jan.lonnqvist@windowslive.com</a>
+        </div>
+    </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const canvas = document.getElementById('canvas');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xfdfbf8);
+
+const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(0, 4, 9);
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.localClippingEnabled = true;
+
+// Clipping plane for logo reveal - clips at roll edge
+const logoClipPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0);
+
+// Premium studio lighting
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+// Main key light - warm sunlight from window
+const sun = new THREE.DirectionalLight(0xfff8f0, 1.2);
+sun.position.set(6, 15, 10);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.near = 1;
+sun.shadow.camera.far = 30;
+sun.shadow.camera.left = sun.shadow.camera.bottom = -12;
+sun.shadow.camera.right = sun.shadow.camera.top = 12;
+sun.shadow.bias = -0.0001;
+sun.shadow.radius = 2;
+scene.add(sun);
+
+// Soft fill from left (window)
+const fill = new THREE.DirectionalLight(0xffffff, 0.35);
+fill.position.set(-10, 8, 4);
+scene.add(fill);
+
+// Rim light to highlight mat edges
+const rim = new THREE.DirectionalLight(0xffffff, 0.25);
+rim.position.set(0, 3, -8);
+scene.add(rim);
+
+// Subtle warm bounce from floor
+const bounce = new THREE.DirectionalLight(0xfff5e6, 0.1);
+bounce.position.set(0, -2, 5);
+scene.add(bounce);
+
+// Polished concrete floor - typical yoga studio look
+const floorTex = (() => {
+    const c = document.createElement('canvas');
+    c.width = 1024; c.height = 1024;
+    const ctx = c.getContext('2d');
+
+    // Light gray concrete base
+    ctx.fillStyle = '#e0dcd5';
+    ctx.fillRect(0, 0, 1024, 1024);
+
+    // Subtle color variation patches
+    for (let i = 0; i < 30; i++) {
+        const x = Math.random() * 1024;
+        const y = Math.random() * 1024;
+        const r = 50 + Math.random() * 150;
+        const lum = 85 + Math.random() * 10;
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+        grad.addColorStop(0, `hsla(40, 8%, ${lum}%, 0.2)`);
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 1024, 1024);
+    }
+
+    // Fine texture/grain
+    for (let i = 0; i < 15000; i++) {
+        const x = Math.random() * 1024;
+        const y = Math.random() * 1024;
+        const lum = 180 + Math.random() * 60;
+        ctx.fillStyle = `rgba(${lum},${lum},${lum}, 0.15)`;
+        ctx.fillRect(x, y, 1, 1);
+    }
+
+    // Subtle aggregate spots (like polished concrete)
+    for (let i = 0; i < 200; i++) {
+        const x = Math.random() * 1024;
+        const y = Math.random() * 1024;
+        const r = 2 + Math.random() * 4;
+        ctx.fillStyle = `rgba(200, 195, 185, ${0.2 + Math.random() * 0.2})`;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(3, 3);
+    return t;
+})();
+const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(25, 25),
+    new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.4, metalness: 0.1 })
+);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Wall texture - visible concrete/plaster with character
+const wallTex = (() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 1024;
+    const ctx = c.getContext('2d');
+    // Base warm white
+    ctx.fillStyle = '#f0ebe3';
+    ctx.fillRect(0, 0, 1024, 1024);
+
+    // Large subtle color patches (like real plaster)
+    for (let i = 0; i < 20; i++) {
+        const x = Math.random() * 1024;
+        const y = Math.random() * 1024;
+        const r = 100 + Math.random() * 200;
+        const lum = 88 + Math.random() * 8;
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+        grad.addColorStop(0, `hsla(35, 15%, ${lum}%, 0.3)`);
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 1024, 1024);
+    }
+
+    // Visible grain/noise texture
+    for (let i = 0; i < 25000; i++) {
+        const x = Math.random() * 1024;
+        const y = Math.random() * 1024;
+        const lum = 200 + Math.random() * 50;
+        ctx.fillStyle = `rgba(${lum},${lum - 5},${lum - 10}, 0.4)`;
+        ctx.fillRect(x, y, 1 + Math.random() * 3, 1 + Math.random() * 3);
+    }
+
+    // Darker speckles
+    for (let i = 0; i < 3000; i++) {
+        const x = Math.random() * 1024;
+        const y = Math.random() * 1024;
+        ctx.fillStyle = `rgba(180, 170, 155, ${0.1 + Math.random() * 0.2})`;
+        ctx.fillRect(x, y, 1 + Math.random() * 2, 1 + Math.random() * 2);
+    }
+
+    // Subtle cracks/lines
+    ctx.strokeStyle = 'rgba(200, 190, 175, 0.15)';
+    for (let i = 0; i < 15; i++) {
+        ctx.lineWidth = 0.5 + Math.random() * 1;
+        ctx.beginPath();
+        let x = Math.random() * 1024;
+        let y = Math.random() * 1024;
+        ctx.moveTo(x, y);
+        for (let j = 0; j < 5; j++) {
+            x += (Math.random() - 0.5) * 100;
+            y += Math.random() * 80;
+            ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(2, 1.5);
+    return t;
+})();
+const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.95, metalness: 0 });
+const backWall = new THREE.Mesh(new THREE.PlaneGeometry(25, 10), wallMat);
+backWall.position.set(0, 5, -5);
+backWall.receiveShadow = true;
+scene.add(backWall);
+// Left and right walls use plain color to avoid texture seam issues
+const sideWallMat = new THREE.MeshStandardMaterial({ color: 0xf0ebe3, roughness: 0.95, metalness: 0 });
+const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(15, 10), sideWallMat);
+leftWall.position.set(-7, 5, 2.5);
+leftWall.rotation.y = Math.PI / 2;
+leftWall.receiveShadow = true;
+scene.add(leftWall);
+const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(15, 10), sideWallMat);
+rightWall.position.set(8, 5, 2.5);
+rightWall.rotation.y = -Math.PI / 2;
+rightWall.receiveShadow = true;
+scene.add(rightWall);
+
+// Baseboards
+const baseboardMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+const baseboard1 = new THREE.Mesh(new THREE.BoxGeometry(25, 0.15, 0.03), baseboardMat);
+baseboard1.position.set(0, 0.075, -4.98);
+scene.add(baseboard1);
+const baseboard2 = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.15, 15), baseboardMat);
+baseboard2.position.set(-6.98, 0.075, 2.5);
+scene.add(baseboard2);
+const baseboard3 = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.15, 15), baseboardMat);
+baseboard3.position.set(7.98, 0.075, 2.5);
+scene.add(baseboard3);
+
+// Large arched window (left wall) - flooding with natural light
+const archGroup = new THREE.Group();
+archGroup.position.set(-6.95, 0, -1);
+archGroup.rotation.y = Math.PI / 2;
+scene.add(archGroup);
+// Window glow
+const winGlow = new THREE.Mesh(
+    new THREE.PlaneGeometry(3, 5),
+    new THREE.MeshBasicMaterial({ color: 0xffffff })
+);
+winGlow.position.set(0, 4, 0);
+archGroup.add(winGlow);
+// Arch top
+const archCurve = new THREE.Mesh(
+    new THREE.CircleGeometry(1.5, 32, 0, Math.PI),
+    new THREE.MeshBasicMaterial({ color: 0xffffff })
+);
+archCurve.position.set(0, 6.5, 0);
+archGroup.add(archCurve);
+// Thin black frame
+const frameMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5 });
+[[-1.52, 4, 5], [1.52, 4, 5], [0, 1.48, 3.1]].forEach((p, i) => {
+    const bar = new THREE.Mesh(
+        new THREE.BoxGeometry(i < 2 ? 0.04 : 3.1, i < 2 ? p[2] : 0.04, 0.02),
+        frameMat
+    );
+    bar.position.set(p[0], p[1], 0.01);
+    archGroup.add(bar);
+});
+
+// Large window on back wall with sky view
+const windowGroup = new THREE.Group();
+windowGroup.position.set(2, 0, -4.95);
+scene.add(windowGroup);
+// Sky gradient texture
+const skyTex = (() => {
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 512;
+    const ctx = c.getContext('2d');
+    // Sky gradient
+    const grad = ctx.createLinearGradient(0, 0, 0, 512);
+    grad.addColorStop(0, '#87CEEB');
+    grad.addColorStop(0.4, '#B0E0E6');
+    grad.addColorStop(1, '#E0F4FF');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 512);
+    // Soft clouds
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    for (let i = 0; i < 8; i++) {
+        const cx = Math.random() * 512;
+        const cy = 80 + Math.random() * 200;
+        for (let j = 0; j < 5; j++) {
+            ctx.beginPath();
+            ctx.ellipse(cx + j * 25 - 50, cy + (Math.random() - 0.5) * 20, 40 + Math.random() * 30, 25 + Math.random() * 15, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    return new THREE.CanvasTexture(c);
+})();
+const windowPane = new THREE.Mesh(
+    new THREE.PlaneGeometry(4.5, 3.5),
+    new THREE.MeshBasicMaterial({ map: skyTex })
+);
+windowPane.position.y = 2.75;
+windowGroup.add(windowPane);
+// Black window frame
+const mfT = 0.05;
+[[0, 4.55, 4.6, mfT], [0, 0.95, 4.6, mfT], [-2.3, 2.75, mfT, 3.65], [2.3, 2.75, mfT, 3.65]].forEach(p => {
+    const piece = new THREE.Mesh(new THREE.BoxGeometry(p[2], p[3], 0.03), frameMat);
+    piece.position.set(p[0], p[1], 0.01);
+    windowGroup.add(piece);
+});
+// Window cross bars
+const crossH = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.04, 0.02), frameMat);
+crossH.position.set(0, 2.75, 0.01);
+windowGroup.add(crossH);
+const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.04, 3.5, 0.02), frameMat);
+crossV.position.set(0, 2.75, 0.01);
+windowGroup.add(crossV);
+
+
+// Minimal wooden bench
+const benchGroup = new THREE.Group();
+benchGroup.position.set(4.5, 0, -2);
+benchGroup.rotation.y = -0.15;
+scene.add(benchGroup);
+const benchWood = new THREE.MeshStandardMaterial({ color: 0xd4b896, roughness: 0.65 });
+const seat = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.06, 0.45), benchWood);
+seat.position.y = 0.45;
+seat.castShadow = true;
+benchGroup.add(seat);
+const legMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.4, metalness: 0.3 });
+[[-0.5, 0.15], [0.5, 0.15], [-0.5, -0.15], [0.5, -0.15]].forEach(p => {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.42, 16), legMat);
+    leg.position.set(p[0], 0.21, p[1]);
+    benchGroup.add(leg);
+});
+
+// Cork yoga blocks
+const corkMat = new THREE.MeshStandardMaterial({ color: 0xd4b88a, roughness: 0.85 });
+const block1 = new THREE.Mesh(new THREE.BoxGeometry(0.23, 0.15, 0.35), corkMat);
+block1.position.set(2.8, 0.075, -1.8);
+block1.rotation.y = 0.25;
+block1.castShadow = true;
+scene.add(block1);
+const block2 = new THREE.Mesh(new THREE.BoxGeometry(0.23, 0.15, 0.35), corkMat);
+block2.position.set(2.5, 0.075, -1.3);
+block2.rotation.y = -0.1;
+block2.castShadow = true;
+scene.add(block2);
+
+// Rolled towel
+const towelMat = new THREE.MeshStandardMaterial({ color: 0xfaf8f5, roughness: 0.9 });
+const towel = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.6, 32), towelMat);
+towel.position.set(3.2, 0.08, -1);
+towel.rotation.z = Math.PI / 2;
+towel.castShadow = true;
+scene.add(towel);
+
+// Water bottle
+const bottleMat = new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.3, metalness: 0.5 });
+const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.28, 32), bottleMat);
+bottle.position.set(3.5, 0.14, -0.5);
+bottle.castShadow = true;
+scene.add(bottle);
+
+// Wall shelf with decor
+const shelfGroup = new THREE.Group();
+shelfGroup.position.set(-3, 1.8, -4.9);
+scene.add(shelfGroup);
+const shelfWood = new THREE.MeshStandardMaterial({ color: 0xc9b896, roughness: 0.6 });
+const shelf = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.04, 0.25), shelfWood);
+shelf.castShadow = true;
+shelf.receiveShadow = true;
+shelfGroup.add(shelf);
+// Shelf brackets
+const bracketMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.4, metalness: 0.5 });
+const bracket1 = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.15, 0.02), bracketMat);
+bracket1.position.set(-0.5, -0.08, 0.08);
+shelfGroup.add(bracket1);
+const bracket2 = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.15, 0.02), bracketMat);
+bracket2.position.set(0.5, -0.08, 0.08);
+shelfGroup.add(bracket2);
+// Candle on shelf
+const candleMat = new THREE.MeshStandardMaterial({ color: 0xfaf5eb, roughness: 0.7 });
+const candle = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.12, 24), candleMat);
+candle.position.set(-0.4, 0.08, 0);
+candle.castShadow = true;
+shelfGroup.add(candle);
+// Small vase
+const vaseMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.3, metalness: 0.2 });
+const vase = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.18, 24), vaseMat);
+vase.position.set(0.1, 0.11, 0);
+vase.castShadow = true;
+shelfGroup.add(vase);
+// Book stack
+const bookMat1 = new THREE.MeshStandardMaterial({ color: 0xe8e0d5, roughness: 0.9 });
+const book1 = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.03, 0.16), bookMat1);
+book1.position.set(0.45, 0.035, 0);
+book1.rotation.y = 0.1;
+shelfGroup.add(book1);
+const bookMat2 = new THREE.MeshStandardMaterial({ color: 0xc4b8a8, roughness: 0.9 });
+const book2 = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.025, 0.15), bookMat2);
+book2.position.set(0.45, 0.06, 0);
+book2.rotation.y = -0.05;
+shelfGroup.add(book2);
+
+// Swedish ladder (wall bars) - back left corner
+const ladderGroup = new THREE.Group();
+ladderGroup.position.set(-5.5, 0, -4.8);
+scene.add(ladderGroup);
+
+const ladderWood = new THREE.MeshStandardMaterial({ color: 0xc9a66b, roughness: 0.55 });
+
+// Vertical side rails
+const railL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 3.2, 0.06), ladderWood);
+railL.position.set(-0.45, 1.6, 0);
+railL.castShadow = true;
+ladderGroup.add(railL);
+
+const railR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 3.2, 0.06), ladderWood);
+railR.position.set(0.45, 1.6, 0);
+railR.castShadow = true;
+ladderGroup.add(railR);
+
+// Horizontal rungs
+for (let i = 0; i < 10; i++) {
+    const rung = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.045, 0.045), ladderWood);
+    rung.position.set(0, 0.25 + i * 0.32, 0.02);
+    rung.castShadow = true;
+    ladderGroup.add(rung);
+}
+
+
+// Mat constants
+const MAT_WIDTH = 1.6;
+const MAT_LENGTH = 4.5;
+const MAT_THICK = 0.012;
+const MAX_ROLL_R = 0.18;
+
+// Premium mat material - clean charcoal
+const matMat = new THREE.MeshStandardMaterial({
+    color: 0x484848,
+    roughness: 0.8,
+    metalness: 0.03,
+    side: THREE.DoubleSide
+});
+
+// Same for roll
+const rollMat = matMat;
+
+// Create white ALO logo on mat using image load + canvas
+const logoGroup = new THREE.Group();
+const logoImg = new Image();
+logoImg.crossOrigin = 'anonymous';
+logoImg.onload = () => {
+    // Create canvas and draw inverted (white) logo
+    const c = document.createElement('canvas');
+    c.width = 400;
+    c.height = 180;
+    const ctx = c.getContext('2d');
+
+    // Draw original logo
+    ctx.drawImage(logoImg, 0, 0, 400, 180);
+
+    // Invert to white: get image data and invert
+    const imgData = ctx.getImageData(0, 0, 400, 180);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+        // Make black pixels white, keep alpha
+        if (data[i] < 50 && data[i+1] < 50 && data[i+2] < 50 && data[i+3] > 0) {
+            data[i] = 255;     // R
+            data[i+1] = 255;   // G
+            data[i+2] = 255;   // B
+        } else {
+            data[i+3] = 0; // Make non-black pixels transparent
+        }
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    const logoTex = new THREE.CanvasTexture(c);
+    const logoMat = new THREE.MeshStandardMaterial({
+        map: logoTex,
+        transparent: true,
+        roughness: 0.75,
+        metalness: 0,
+        side: THREE.DoubleSide,
+        clippingPlanes: [logoClipPlane]
+    });
+
+    const logoPlane = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.0, 0.45),
+        logoMat
+    );
+    logoPlane.rotation.x = -Math.PI / 2; // Flat on mat
+    logoPlane.rotation.z = Math.PI / 2;  // Sideways along mat length
+    logoPlane.position.set(0, MAT_THICK + 0.002, 0);
+    logoGroup.add(logoPlane);
+};
+logoImg.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Alo_Yoga_logo.svg/500px-Alo_Yoga_logo.svg.png';
+
+// Mat group
+const matGroup = new THREE.Group();
+matGroup.position.set(0, 0, 0.5);
+matGroup.rotation.y = -0.05;
+scene.add(matGroup);
+matGroup.add(logoGroup);
+
+// Flat mat (box that scales in Z)
+const flatMat = new THREE.Mesh(
+    new THREE.BoxGeometry(MAT_WIDTH, MAT_THICK, 1),
+    matMat
+);
+flatMat.castShadow = true;
+flatMat.receiveShadow = true;
+matGroup.add(flatMat);
+
+// Roll (cylinder)
+const rollGeo = new THREE.CylinderGeometry(MAX_ROLL_R, MAX_ROLL_R, MAT_WIDTH, 48);
+const rollMesh = new THREE.Mesh(rollGeo, rollMat);
+rollMesh.rotation.z = Math.PI / 2;
+rollMesh.castShadow = true;
+matGroup.add(rollMesh);
+
+// Roll end caps
+const capMat = new THREE.MeshStandardMaterial({
+    color: 0x151515,
+    roughness: 0.95,
+    metalness: 0
+});
+const capL = new THREE.Mesh(new THREE.CircleGeometry(MAX_ROLL_R, 48), capMat);
+const capR = new THREE.Mesh(new THREE.CircleGeometry(MAX_ROLL_R, 48), capMat);
+capL.rotation.y = -Math.PI / 2;
+capR.rotation.y = Math.PI / 2;
+matGroup.add(capL, capR);
+
+// Curved transition (quarter pipe)
+const curveSegs = 24;
+const curveGeo = new THREE.PlaneGeometry(MAT_WIDTH, 1, 1, curveSegs);
+const curveMesh = new THREE.Mesh(curveGeo, rollMat);
+curveMesh.castShadow = true;
+matGroup.add(curveMesh);
+
+function updateMat(p) {
+    // p: 0 = rolled, 1 = fully flat
+    const unrolled = p * MAT_LENGTH;
+    const rolled = MAT_LENGTH - unrolled;
+
+    // Roll radius shrinks based on remaining length
+    const rollR = MAX_ROLL_R * Math.sqrt(Math.max(0, 1 - p));
+
+    // Start position (where mat begins)
+    const startZ = -MAT_LENGTH / 2;
+
+    // === FLAT PORTION ===
+    if (unrolled > 0.01) {
+        flatMat.visible = true;
+        flatMat.scale.z = unrolled;
+        flatMat.position.set(0, MAT_THICK / 2, startZ + unrolled / 2);
+    } else {
+        flatMat.visible = false;
+    }
+
+    // === LOGO ON MAT ===
+    // Clip logo at the roll edge so it reveals as mat unrolls
+    const unrolledEnd = startZ + unrolled;
+    // Update clipping plane to be at roll edge (in world space, accounting for matGroup position)
+    logoClipPlane.constant = unrolledEnd + 0.5 - 0.05; // matGroup.position.z = 0.5
+
+    if (logoGroup.children.length > 0) {
+        const logo = logoGroup.children[0];
+        logo.visible = true;
+        logo.position.z = 0;
+    }
+
+    // === CURVED TRANSITION ===
+    if (p > 0.02 && p < 0.98) {
+        curveMesh.visible = true;
+        const curvePos = curveGeo.attributes.position;
+        const curveR = rollR;
+
+        // PlaneGeometry vertices: 2 columns (left/right edge) × (curveSegs+1) rows
+        const cols = 2;
+        const rows = curveSegs + 1;
+
+        for (let row = 0; row < rows; row++) {
+            const t = row / curveSegs; // 0 at bottom, 1 at top
+            const angle = t * Math.PI * 0.5; // Quarter circle (0 to 90 degrees)
+
+            const y = MAT_THICK + Math.sin(angle) * curveR;
+            const z = startZ + unrolled + (1 - Math.cos(angle)) * curveR;
+
+            for (let col = 0; col < cols; col++) {
+                const idx = row * cols + col;
+                const x = (col - 0.5) * MAT_WIDTH;
+                curvePos.setXYZ(idx, x, y, z);
+            }
+        }
+        curvePos.needsUpdate = true;
+        curveGeo.computeVertexNormals();
+    } else {
+        curveMesh.visible = false;
+    }
+
+    // === ROLL ===
+    if (p < 0.99 && rollR > 0.01) {
+        rollMesh.visible = true;
+        capL.visible = capR.visible = true;
+
+        // Position at end of flat + curve
+        const rollZ = startZ + unrolled + rollR;
+        const rollY = rollR + MAT_THICK;
+
+        rollMesh.position.set(0, rollY, rollZ);
+        // After rotation.z = PI/2, scale.x and scale.z affect radius, scale.y affects length
+        const radiusScale = rollR / MAX_ROLL_R;
+        rollMesh.scale.set(radiusScale, 1, radiusScale);
+
+        // Rotate based on unrolled amount (spinning as it unrolls)
+        rollMesh.rotation.x = -unrolled / MAX_ROLL_R * 2;
+
+        // Caps - position at cylinder ends
+        const halfWidth = MAT_WIDTH / 2;
+        capL.position.set(-halfWidth, rollY, rollZ);
+        capR.position.set(halfWidth, rollY, rollZ);
+        capL.scale.set(radiusScale, radiusScale, 1);
+        capR.scale.set(radiusScale, radiusScale, 1);
+    } else {
+        rollMesh.visible = false;
+        capL.visible = capR.visible = false;
+    }
+}
+
+// Animation
+let progress = 0;
+let target = 0;
+let ready = false;
+
+const textSections = document.querySelectorAll('.text-section');
+const progressFill = document.querySelector('.progress-fill');
+
+function updateUI(p) {
+    textSections.forEach(section => {
+        const s = +section.dataset.start, e = +section.dataset.end;
+        section.classList.toggle('visible', p >= s && p <= e);
+    });
+    progressFill.style.height = p * 100 + '%';
+}
+
+function updateCamera(p) {
+    const e = p * p * (3 - 2 * p);
+    camera.position.set(-0.3 + e * 1.2, 4 - e * 1, 9 - e * 3);
+    camera.lookAt(e * 0.5, 0.3, e);
+}
+
+const scrollEl = document.querySelector('.scroll-length');
+let maxScroll = scrollEl.offsetHeight - innerHeight;
+
+// Recalculate after fonts/images load
+window.addEventListener('load', () => {
+    maxScroll = scrollEl.offsetHeight - innerHeight;
+    // Set initial state based on current scroll
+    target = Math.max(0, Math.min(1, scrollY / maxScroll));
+    progress = target;
+    ready = true;
+});
+
+addEventListener('scroll', () => {
+    if (!ready) return;
+    target = Math.max(0, Math.min(1, scrollY / maxScroll));
+}, { passive: true });
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    // Smooth lerp
+    progress += (target - progress) * 0.08;
+    progress = Math.max(0, Math.min(1, progress));
+
+    updateMat(progress);
+    updateCamera(progress);
+    updateUI(progress);
+
+    renderer.render(scene, camera);
+}
+
+addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+    maxScroll = scrollEl.offsetHeight - innerHeight;
+});
+
+updateMat(0);
+updateUI(0);
+animate();
+textSections[0].classList.add('visible');
+</script>
+</body>
+</html>
